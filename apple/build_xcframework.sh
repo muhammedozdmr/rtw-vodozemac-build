@@ -81,6 +81,22 @@ xcodebuild -create-xcframework \
   -headers "${GENERATED_DIR}/headers" \
   -output "${XCFRAMEWORK}"
 
+# RTW: xcodebuild `AvailableLibraries` dizisini rastgele sirayla yaziyor (cihaz ve
+# simulator dilimleri iki derlemede yer degistirdi; run 45275118755). Ikililer ayni
+# oldugu halde Info.plist ozeti degisiyor ve yeniden uretilebilirlik denetimi kiriliyor.
+# Diziyi LibraryIdentifier'a gore siralayip anahtarlari sirali XML olarak yeniden yaz.
+python3 - "${XCFRAMEWORK}/Info.plist" <<'PY'
+import plistlib, sys
+path = sys.argv[1]
+with open(path, "rb") as f:
+    data = plistlib.load(f)
+data["AvailableLibraries"].sort(key=lambda lib: lib["LibraryIdentifier"])
+for lib in data["AvailableLibraries"]:
+    lib["SupportedArchitectures"].sort()
+with open(path, "wb") as f:
+    plistlib.dump(data, f, fmt=plistlib.FMT_XML, sort_keys=True)
+PY
+
 # Scratch artifacts no longer needed; the XCFramework + generated Swift are
 # the deliverables.
 rm -rf "${GENERATED_DIR}"
