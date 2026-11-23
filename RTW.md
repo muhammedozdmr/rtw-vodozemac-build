@@ -25,7 +25,10 @@ derler ve kanıtlar.
 | `--locked` (cargo) | Bağımlılıklar yalnız `Cargo.lock`'tan |
 | Depodaki hazır `.so` / `.a` / xcframework silindi | İkililerin tek kaynağı bu deponun CI'ı |
 | Upstream `build.yml` (npm yayımlama) silindi | npm'e yayımlamıyoruz |
+| xcframework `Info.plist` sıralanıp yeniden yazılır | `xcodebuild` dilim sırasını rastgele yazıyor; ikililer aynıyken özet değişiyordu |
+| `vodozemac =0.11.2` (upstream `0.10`) | RUSTSEC-2026-0510 / 0451 / 0445 düzeltmeleri |
 | `.github/workflows/rtw-build.yml` | Aşağıda |
+| `.github/workflows/rtw-lock.yml` | `Cargo.lock`'u sabit araç zinciriyle CI'da günceller; depoya yazmaz |
 
 Rust kaynak kodu (`src/`, `crates/vodozemac-ffi/`) upstream'le **aynıdır**. Kaynak
 değişikliği gerektiğinde ayrı commit'le, gerekçesiyle yapılır.
@@ -58,6 +61,15 @@ testlerinde sabitler; ikili değişirse test kırılır.
 
 ## Sürüm yükseltme
 
-`vodozemac` / araç zinciri yükseltmesi ayrı bir PR'dır: değişiklik günlüğü ve upstream
-diff'i okunur, eski pickle'ların açıldığı testle gösterilir, iki istemcinin manifest'i
-birlikte yenilenir.
+`vodozemac` / araç zinciri yükseltmesi ayrı bir daldır:
+
+1. Değişiklik günlüğü okunur, `Cargo.toml` gereksinimi tam sürüme (`=x.y.z`) çekilir.
+2. `rtw-lock` iş akışı o dalda tetiklenir; kilit farkı okunup elle commit edilir.
+3. `advisories` işi kilitteki her paketi OSV/RustSec'te tarar (`scripts/osv-check.py`).
+   Kayıt varsa kanıt üretilmez; kabul edilen kayıt yalnız gerekçesiyle eklenir.
+4. **Pickle uyumluluğu:** önceki sürümün derlemesi `pickle-compat` artefaktını üretir
+   (`scripts/generate-pickle-compat.mjs`); vektör `test-vectors/` altına konur. Yeni
+   sürümün derlemesi `test-vectors/` altındaki HER vektörü açıp yazışmayı sürdürmek
+   zorundadır (`scripts/verify-pickle-compat.mjs`). Kullanıcıların cihazındaki kimlik ve
+   oturumların yükseltmeden sağ çıktığının kanıtı budur.
+5. Dal `rtw`'ye birleşir; iki istemcinin manifest kilidi birlikte yenilenir.
