@@ -36,6 +36,15 @@ env:
   XCODE_VERSION: "16.4"
 
 jobs:
+  # Cargo.lock'taki her paket OSV/RustSec'te taranir; bilinen kayit varsa kanit uretilmez.
+  # Kabul edilen kayitlar gerekcesiyle scripts/osv-check.py icindedir.
+  advisories:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: OSV / RustSec taramasi
+        run: python3 scripts/osv-check.py Cargo.lock
+
   wasm:
     strategy:
       matrix:
@@ -188,7 +197,7 @@ jobs:
           retention-days: 30
 
   verify:
-    needs: [wasm, android, ios]
+    needs: [advisories, wasm, android, ios]
     runs-on: ubuntu-24.04
     permissions:
       contents: read

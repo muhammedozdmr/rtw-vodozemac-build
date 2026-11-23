@@ -1,0 +1,81 @@
+{
+  "description": "RTW pickle uyumluluk vektoru: eski vodozemac surumunde uretilen pickle'lar yeni surumde acilmali ve yazisma kaldigi yerden surmeli.",
+  "generatedWith": {
+    "package": "@kinsh/vodozemac-wasm (rtw-vodozemac-build pkg-node)",
+    "vodozemac": "0.10.0"
+  },
+  "phone": {
+    "accountPickle": "{\"signing_key\":{\"Normal\":[120,194,87,252,51,162,141,235,104,250,40,101,138,124,128,207,234,235,181,106,161,153,24,200,166,5,236,62,213,48,126,200]},\"diffie_hellman_key\":[178,27,76,197,84,145,41,150,170,9,189,87,96,112,32,166,241,145,55,43,231,100,29,33,236,88,204,214,187,139,63,118],\"one_time_keys\":{\"next_key_id\":5,\"public_keys\":{\"3\":[19,34,209,131,138,49,40,88,30,91,5,251,68,214,169,168,156,46,219,186,82,174,206,209,165,106,198,68,247,155,212,58],\"4\":[10,229,209,231,103,160,180,2,164,54,37,71,125,52,12,241,87,195,203,238,204,137,76,37,115,94,250,214,205,18,223,93]},\"private_keys\":{\"1\":[183,101,146,92,58,252,6,78,159,86,106,79,40,18,169,198,168,234,96,9,231,30,2,176,60,232,145,104,35,82,133,215],\"2\":[177,233,109,80,226,181,133,193,204,236,245,229,203,9,37,60,125,57,175,72,58,45,29,188,5,87,53,76,88,3,131,210],\"3\":[219,146,228,212,172,182,88,122,207,50,174,29,89,188,248,71,62,99,78,50,139,185,8,166,174,64,31,145,30,218,188,234],\"4\":[168,69,100,48,125,92,138,249,116,150,254,105,255,111,237,134,153,173,200,54,9,5,111,143,214,255,10,40,180,216,11,196]}},\"fallback_keys\":{\"key_id\":1,\"fallback_key\":{\"key_id\":0,\"key\":[44,84,205,144,6,210,166,93,33,97,196,197,14,244,76,39,169,65,53,247,143,225,239,133,98,80,183,246,210,203,217,48],\"published\":true},\"previous_fallback_key\":null}}",
+    "curve25519": "IkL1I94eCWIdNMwQ2E6vLRWc6E5BBbQDCkn05FS7CAo",
+    "ed25519": "bf9Fp7CgHfqelDzMJEJ3JiXHWd5zA1SUyldz0xhMhGs",
+    "unpublishedOneTimeKeys": "{\"curve25519\":{\"AAAAAAAAAAM\":\"EyLRg4oxKFgeWwX7RNapqJwu27pSrs7RpWrGRPeb1Do\",\"AAAAAAAAAAQ\":\"CuXR52egtAKkNiVHfTQM8VfDy+7MiUwlc1761s0S310\"}}",
+    "signedProbe": {
+      "message": "rtw-sign-probe",
+      "signature": "6DlVmEwFpOU+O1Q7nmK1W1Y/IU5WY/c4zarehp1sAW4kezh8y7WoTkRSKwqDoKB8c0Iaol0s7qb9PcAFQhn6Dg"
+    }
+  },
+  "browser": {
+    "accountPickle": "{\"signing_key\":{\"Normal\":[164,157,162,207,119,48,232,55,175,139,132,231,57,254,219,219,247,215,93,198,9,144,40,216,196,61,242,86,25,181,254,198]},\"diffie_hellman_key\":[19,186,209,236,25,255,23,103,71,225,118,83,190,226,213,128,246,140,129,145,7,188,103,100,22,30,94,227,175,68,209,28],\"one_time_keys\":{\"next_key_id\":0,\"public_keys\":{},\"private_keys\":{}},\"fallback_keys\":{\"key_id\":0,\"fallback_key\":null,\"previous_fallback_key\":null}}",
+    "curve25519": "A7ktCxRcZh/Y0oIO8m9uzHxQ4N8T9N6MeLllqYCGWQQ"
+  },
+  "olm": {
+    "browserToPhoneSession": "{\"session_keys\":{\"identity_key\":[3,185,45,11,20,92,102,31,216,210,130,14,242,111,110,204,124,80,224,223,19,244,222,140,120,185,101,169,128,134,89,4],\"base_key\":[208,210,48,245,17,234,206,192,44,165,254,89,167,117,75,142,46,6,43,107,59,255,204,39,193,184,146,52,193,104,9,42],\"one_time_key\":[243,167,114,60,67,141,130,28,104,121,155,71,85,109,204,132,191,75,112,70,1,208,228,228,141,112,36,158,146,143,205,94]},\"sending_ratchet\":{\"type\":\"active\",\"parent_ratchet_key\":[54,207,3,151,121,218,44,110,143,212,91,247,162,45,23,229,202,189,152,176,148,118,139,49,107,221,65,154,142,209,149,8],\"ratchet_count\":{\"Known\":2},\"active_ratchet\":{\"root_key\":[147,232,75,2,18,213,154,61,41,71,11,157,1,156,213,234,227,16,106,10,214,224,178,20,172,176,23,100,113,205,224,126],\"ratchet_key\":[185,12,159,222,52,250,103,57,21,60,13,73,149,110,32,220,8,95,184,26,82,108,58,75,161,122,96,160,213,158,115,106]},\"symmetric_key_ratchet\":{\"key\":[64,118,50,24,200,126,185,231,164,29,112,29,133,12,41,236,125,84,244,32,80,198,51,36,125,178,92,44,136,148,186,213],\"index\":2}},\"receiving_chains\":{\"inner\":[{\"ratchet_key\":[54,207,3,151,121,218,44,110,143,212,91,247,162,45,23,229,202,189,152,176,148,118,139,49,107,221,65,154,142,209,149,8],\"hkdf_ratchet\":{\"key\":[53,85,237,72,194,87,255,242,113,155,86,225,180,152,203,216,135,22,3,96,109,20,18,39,88,228,120,159,201,24,66,91],\"index\":1},\"skipped_message_keys\":{\"inner\":[]},\"ratchet_count\":{\"Known\":1}}]},\"config\":{\"version\":\"V1\"}}",
+    "phoneToBrowserSession": "{\"session_keys\":{\"identity_key\":[3,185,45,11,20,92,102,31,216,210,130,14,242,111,110,204,124,80,224,223,19,244,222,140,120,185,101,169,128,134,89,4],\"base_key\":[208,210,48,245,17,234,206,192,44,165,254,89,167,117,75,142,46,6,43,107,59,255,204,39,193,184,146,52,193,104,9,42],\"one_time_key\":[243,167,114,60,67,141,130,28,104,121,155,71,85,109,204,132,191,75,112,70,1,208,228,228,141,112,36,158,146,143,205,94]},\"sending_ratchet\":{\"type\":\"active\",\"parent_ratchet_key\":[131,243,37,87,28,125,241,195,134,69,83,251,32,96,136,187,0,221,189,85,42,234,242,30,194,22,112,165,0,108,205,108],\"ratchet_count\":{\"Known\":3},\"active_ratchet\":{\"root_key\":[210,200,20,140,75,210,195,33,62,173,42,176,77,174,138,35,122,246,116,101,140,241,174,64,157,98,211,164,108,236,190,202],\"ratchet_key\":[42,211,173,8,136,254,239,188,23,246,75,143,94,119,188,244,223,30,240,227,217,103,73,89,86,122,212,65,175,4,108,242]},\"symmetric_key_ratchet\":{\"key\":[109,209,109,46,106,195,134,196,149,167,253,95,19,104,95,86,116,1,19,208,108,120,159,72,116,214,171,81,195,71,222,166],\"index\":1}},\"receiving_chains\":{\"inner\":[{\"ratchet_key\":[229,21,117,247,93,41,191,238,119,234,251,152,50,88,248,85,251,105,48,102,13,102,86,169,58,65,89,194,60,116,68,79],\"hkdf_ratchet\":{\"key\":[156,123,21,78,143,28,54,174,58,152,68,182,221,148,82,35,229,220,163,44,227,139,10,254,246,163,93,86,211,6,205,170],\"index\":1},\"skipped_message_keys\":{\"inner\":[]},\"ratchet_count\":{\"Known\":0}},{\"ratchet_key\":[131,243,37,87,28,125,241,195,134,69,83,251,32,96,136,187,0,221,189,85,42,234,242,30,194,22,112,165,0,108,205,108],\"hkdf_ratchet\":{\"key\":[14,6,114,218,137,185,65,83,60,37,25,65,127,220,146,136,59,167,93,128,70,46,96,175,168,127,32,34,116,108,80,152],\"index\":1},\"skipped_message_keys\":{\"inner\":[]},\"ratchet_count\":{\"Known\":2}}]},\"config\":{\"version\":\"V1\"}}",
+    "phoneToBrowserSessionId": "YMV31hKyWR5wDmH8ZlZ/Vc1uaBpNZbjEdhO0me/bP9Q",
+    "pendingToPhone": {
+      "type": 1,
+      "body": "Awogg/MlVxx98cOGRVP7IGCIuwDdvVUq6vIewhZwpQBszWwQASIwWkelTNeq4SUFsHc9WSAHPivAb3983aTYXHg9qjvfHDUTGDZ5MOjUUab1i+6ws5rDj0bySQUxyMs",
+      "plaintext": "tarayici: yukseltmeden once gonderildi"
+    },
+    "pendingToBrowser": {
+      "type": 1,
+      "body": "AwogMBOUW9mgXTO+L37Op2cyof+VDLFI3afagosky91Xt0QQACIwj2rqAW6mvFHc0nrnKE7nZ2/Z6NuStBhDDAzfKq7+npiwwSVYN4O5h7+NSl0Z0NUO67QlBHE2aIk",
+      "plaintext": "telefon: yukseltmeden once gonderildi"
+    },
+    "prekeyWithOneTimeKey": {
+      "type": 0,
+      "body": "AwogIDQ2b0t89fkCjKfEQ2EitODqZA7pN/K6hIxkkBrN6kMSII6G4ihMA1BpITmXdvbZTkzE0y4PHI9kArvdF0UO6EYEGiAPIe/7OyEUQmUwAKfnGrk+hTz3dwV5lbIfk9hd9Hs5dCJfAwogz+E6d2757fWpDGSxU+rxPqHohGAG0giqtt6G8zNjGWAQACIw+IWG3pTNPMC+HymY3D3oSxEhjt+2lizoIR9mbC8tXdjf+BzySGwDzb+NbFQX4xhttwDK4d1bRY8",
+      "plaintext": "yabanci: tek kullanimlik anahtarla",
+      "sender": "DyHv+zshFEJlMACn5xq5PoU893cFeZWyH5PYXfR7OXQ"
+    },
+    "prekeyWithFallbackKey": {
+      "type": 0,
+      "body": "AwogmvQQsw/Hhuf/qHY/fr5G4MsU3fiJBKo4sp5pn+ez52cSIE0Za7VUOMqbgItT77mA2+ZGSToXs+KHgRWE7wq0E00FGiCIsE6Pu754ZYHKPt2Scw9F120QbC3n0d4ZSjwINcKWLCJPAwogf5VZsSxORgcB8Sgykr8uVZTnLwFrEwL4utjybjR/8gcQACIg9C98PUNuJs66vqOAWFXndEY4xlRFpFKPLav3rTMOEu7kzXv9dvJILQ",
+      "plaintext": "yabanci: yedek anahtarla",
+      "sender": "iLBOj7u+eGWByj7dknMPRddtEGwt59HeGUo8CDXCliw"
+    }
+  },
+  "megolm": {
+    "sessionId": "SVlN0yI8bYGa7UBDp3hQiJ2BqhrEzJ2/jD82vbmKdqY",
+    "outboundPickle": "{\"ratchet\":{\"inner\":[42,104,186,243,133,31,88,107,62,234,62,206,250,65,53,196,96,240,85,192,114,10,38,3,193,183,195,102,18,113,74,209,141,24,109,40,90,241,110,27,56,6,160,58,245,232,227,183,255,213,95,240,10,78,106,12,0,105,104,105,0,72,14,86,128,192,138,178,222,57,118,119,197,60,191,181,221,250,202,116,45,248,11,197,194,82,95,56,198,217,151,28,80,141,230,59,40,247,134,81,114,56,204,163,33,186,117,138,43,178,86,225,45,191,161,145,223,43,26,235,72,3,90,195,157,255,53,228],\"counter\":5},\"signing_key\":{\"Normal\":[6,145,80,39,63,166,234,221,95,42,32,131,143,70,100,105,235,229,47,189,1,173,36,57,170,189,205,219,36,201,121,182]},\"config\":{\"version\":\"V1\"}}",
+    "inboundPickle": "{\"initial_ratchet\":{\"inner\":[42,104,186,243,133,31,88,107,62,234,62,206,250,65,53,196,96,240,85,192,114,10,38,3,193,183,195,102,18,113,74,209,141,24,109,40,90,241,110,27,56,6,160,58,245,232,227,183,255,213,95,240,10,78,106,12,0,105,104,105,0,72,14,86,128,192,138,178,222,57,118,119,197,60,191,181,221,250,202,116,45,248,11,197,194,82,95,56,198,217,151,28,80,141,230,59,230,164,173,96,110,250,43,222,161,31,177,252,190,105,201,154,118,195,62,47,43,22,229,97,13,110,85,125,86,218,200,62],\"counter\":0},\"signing_key\":[73,89,77,211,34,60,109,129,154,237,64,67,167,120,80,136,157,129,170,26,196,204,157,191,140,63,54,189,185,138,118,166],\"signing_key_verified\":true,\"config\":{\"version\":\"V1\"}}",
+    "messages": [
+      {
+        "index": 0,
+        "plaintext": "g0",
+        "ciphertext": "AwgAEhCX4UjMXNxtGbEeG267e+2JfJj/hiBHWwS1/U8PaTxA0avvXnIdOhkD0hwY9VEmEalINB2qbpN/NLvOjJOJTUcS7A//njvwl91kIdEUE3942zaR8jSQvHAE"
+      },
+      {
+        "index": 1,
+        "plaintext": "g1",
+        "ciphertext": "AwgBEhCVgIOPZEV1sntj6VSgd7QocNOBhwu2spgBSBnF4KojiynHoMXKR/28cFclRagPsVJRHm84X+LRoOmoCSzJEuexxm5Y0hLitduXkEpy/aLooh94vi+EoJEL"
+      },
+      {
+        "index": 2,
+        "plaintext": "g2",
+        "ciphertext": "AwgCEhDkMi30JBCQ8tONcvVP0rfGsl/rVNK+BB9k/2yBLajL1QK24XrSBcOmZj4Gi12Vm5QPFp07uFZ13JwzoK+AcbVCWAImobH/oFbGllKRN3+1HwqdLoRSb3oP"
+      },
+      {
+        "index": 3,
+        "plaintext": "g3",
+        "ciphertext": "AwgDEhCfo3vfwTe63LUix8YFw4keJE4cwqGYnvSA621xzmHFQ65SYrAMsB7+8XSJ2QbdtKdJKz5FyqjKyMw1cUT2E0OvtISOuj8AzTXFmHPikINEQeQpj06hPaUI"
+      },
+      {
+        "index": 4,
+        "plaintext": "g4",
+        "ciphertext": "AwgEEhAv8cvicZb5Gr/90k17EyA8D4UDNmdUtFBIJJlNZGVvCuys9lWvxLGBSVFe1jtpaXMMS3RuJdKfvp/bzRei2dBxOwWyEzAGmFzb+DTXOzS5STP092KYmnIB"
+      }
+    ],
+    "readUpTo": 2
+  }
+}
