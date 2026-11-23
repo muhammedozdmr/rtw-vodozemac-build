@@ -1,0 +1,238 @@
+# RTW (RateTheWork) yeniden uretilebilir derleme.
+#
+# Ayni commit'ten, sabit Rust surumuyle (rust-toolchain.toml) ve Cargo.lock'a kilitli
+# bagimliliklarla iki istemcinin ikililerini uretir:
+#   - webapp: pkg-web (wasm-bindgen yapistirma kodu + .wasm)
+#   - mobil : Android jniLibs (3 ABI) + iOS VodozemacFFI.xcframework + UniFFI Kotlin/Swift
+#
+# Her hedef IKI ayri makinede derlenir (pass a / pass b). Iki derlemenin dosya ozetleri
+# birebir esit degilse `verify` isi kirmizi olur ve hicbir sey yayimlanmaz. Esitse butun
+# dosyalarin SHA-256'si `manifest.json`a yazilir ve GitHub artifact attestation (Sigstore,
+# SLSA provenance) ile imzalanir. Istemciler artefakti `gh attestation verify` ile dogrular
+# ve manifest'teki ozetleri kendi kilit testinde sabitler.
+#
+# Upstream'in npm yayimlama is akisi (build.yml) bu fork'ta YOKTUR: biz npm'e yayimlamayiz.
+
+name: rtw-build
+
+on:
+  push:
+    branches: [rtw]
+    tags: ["rtw-v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  WASM_BINDGEN_CLI_VERSION: "0.2.121" # Cargo.lock'taki wasm-bindgen crate'iyle BIREBIR ayni olmali
+  WASM_PACK_VERSION: "0.15.1"
+  CARGO_NDK_VERSION: "4.1.2"
+  ANDROID_NDK_VERSION: "27.1.12297006" # mobil uygulamanin derlendigi NDK
+  ANDROID_MIN_API: "24"
+  XCODE_VERSION: "16.4"
+
+jobs:
+  wasm:
+    strategy:
+      matrix:
+        pass: [a, b]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Ortam (yol bagimsizligi + sabit zaman)
+        run: |
+          echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=--remap-path-prefix=${GITHUB_WORKSPACE}=/build --remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo" >> "$GITHUB_ENV"
+      - name: Rust arac zinciri (rust-toolchain.toml)
+        run: rustup toolchain install && rustc --version --verbose
+      - name: Sabit surumlu araclar
+        run: |
+          cargo install wasm-bindgen-cli --version "$WASM_BINDGEN_CLI_VERSION" --locked
+          cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
+          locked=$(awk '/^name = "wasm-bindgen"$/{getline; print $3}' Cargo.lock | tr -d '"')
+          test "$locked" = "$WASM_BINDGEN_CLI_VERSION" || { echo "::error::Cargo.lock wasm-bindgen $locked != CLI $WASM_BINDGEN_CLI_VERSION"; exit 1; }
+      - name: Rust birim testleri
+        if: matrix.pass == 'a'
+        run: cargo test -p vodozemac-ffi --locked
+      - name: pkg-web + pkg-node
+        run: |
+          wasm-pack build --mode no-install --target web --release --out-dir pkg-web -- --locked
+          wasm-pack build --mode no-install --target nodejs --release --out-dir pkg-node -- --locked
+          node scripts/strip-pkg-gitignore.mjs
+      - name: Duman testi + test vektorleri
+        if: matrix.pass == 'a'
+        run: npm test
+      - name: CSP — uretilen JS'te eval / new Function yok
+        run: |
+          if grep -nE '\beval\(|new Function\(' pkg-web/*.js; then echo "::error::pkg-web JS eval/new Function iceriyor"; exit 1; fi
+      - name: Ozetler
+        run: |
+          mkdir -p out/wasm
+          cp pkg-web/kinsh_vodozemac_wasm.js pkg-web/kinsh_vodozemac_wasm_bg.wasm pkg-web/kinsh_vodozemac_wasm.d.ts out/wasm/
+          (cd out && find . -type f | LC_ALL=C sort | xargs sha256sum) > sums-wasm-${{ matrix.pass }}.txt
+          cat sums-wasm-${{ matrix.pass }}.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wasm-${{ matrix.pass }}
+          path: |
+            out
+            sums-wasm-${{ matrix.pass }}.txt
+          retention-days: 30
+
+  android:
+    strategy:
+      matrix:
+        pass: [a, b]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Ortam (yol bagimsizligi + sabit zaman)
+        run: |
+          echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=--remap-path-prefix=${GITHUB_WORKSPACE}=/build --remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo" >> "$GITHUB_ENV"
+      - name: Rust arac zinciri (rust-toolchain.toml)
+        run: rustup toolchain install && rustc --version --verbose
+      - name: Sabit NDK
+        run: |
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$ANDROID_NDK_VERSION" > /dev/null
+          ndk="$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION"
+          test -d "$ndk"
+          echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=$RUSTFLAGS --remap-path-prefix=$ndk=/ndk" >> "$GITHUB_ENV"
+      - name: cargo-ndk
+        run: cargo install cargo-ndk --version "$CARGO_NDK_VERSION" --locked
+      - name: .so (3 ABI)
+        run: |
+          cargo ndk -P "$ANDROID_MIN_API" -t arm64-v8a -t armeabi-v7a -t x86_64 \
+            -o out/android/jniLibs build -p vodozemac-ffi --release --locked
+      - name: Kotlin baglamalari + depodaki kopyayla esitlik
+        run: |
+          cargo run -p vodozemac-ffi --bin uniffi-bindgen --release --locked -- generate \
+            --library target/aarch64-linux-android/release/libvodozemac_ffi.so \
+            --language kotlin --no-format --out-dir out/android/kotlin
+          diff -u rn/android/src/main/java/com/dtelecom/vodozemac/vodozemac.kt \
+            out/android/kotlin/com/dtelecom/vodozemac/vodozemac.kt \
+            || { echo "::error::Uretilen Kotlin depodaki kopyadan farkli"; exit 1; }
+      - name: Ozetler
+        run: |
+          (cd out && find . -type f | LC_ALL=C sort | xargs sha256sum) > sums-android-${{ matrix.pass }}.txt
+          cat sums-android-${{ matrix.pass }}.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-${{ matrix.pass }}
+          path: |
+            out
+            sums-android-${{ matrix.pass }}.txt
+          retention-days: 30
+
+  ios:
+    strategy:
+      matrix:
+        pass: [a, b]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Sabit Xcode
+        run: |
+          dev="/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
+          if [ ! -d "$dev" ]; then echo "::error::Xcode $XCODE_VERSION yok. Mevcut:"; ls /Applications | grep -i xcode; exit 1; fi
+          echo "DEVELOPER_DIR=$dev" >> "$GITHUB_ENV"
+      - name: Ortam (yol bagimsizligi + sabit zaman)
+        run: |
+          echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=--remap-path-prefix=${GITHUB_WORKSPACE}=/build --remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo" >> "$GITHUB_ENV"
+          echo "ZERO_AR_DATE=1" >> "$GITHUB_ENV"
+      - name: Rust arac zinciri (rust-toolchain.toml)
+        run: rustup toolchain install && rustc --version --verbose
+      - name: xcframework + Swift baglamalari
+        run: ./apple/build_xcframework.sh
+      - name: Swift baglamalari depodaki kopyayla esit
+        run: |
+          diff -u rn/ios/VodozemacFFI.swift apple/Sources/VodozemacFFI/VodozemacFFI.swift \
+            || { echo "::error::Uretilen Swift depodaki kopyadan farkli"; exit 1; }
+      - name: Ozetler
+        run: |
+          mkdir -p out/ios
+          cp -R apple/VodozemacFFI.xcframework out/ios/
+          cp apple/Sources/VodozemacFFI/VodozemacFFI.swift out/ios/
+          (cd out && find . -type f | LC_ALL=C sort | xargs shasum -a 256) > sums-ios-${{ matrix.pass }}.txt
+          cat sums-ios-${{ matrix.pass }}.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ios-${{ matrix.pass }}
+          path: |
+            out
+            sums-ios-${{ matrix.pass }}.txt
+          retention-days: 30
+
+  verify:
+    needs: [wasm, android, ios]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write # attestation (Sigstore)
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: dl
+      - name: Iki derleme bayt bayt esit mi
+        run: |
+          set -eu
+          for t in wasm android ios; do
+            a="dl/$t-a/sums-$t-a.txt"; b="dl/$t-b/sums-$t-b.txt"
+            # shasum ve sha256sum ayni bicimi uretir: "<ozet>  ./yol"
+            if ! diff -u "$a" "$b"; then echo "::error::$t: iki derleme FARKLI — yeniden uretilebilir degil"; exit 1; fi
+            echo "$t: esit ($(wc -l < "$a") dosya)"
+          done
+      - name: Manifest
+        run: |
+          set -eu
+          mkdir -p release
+          for t in wasm android ios; do cp -R "dl/$t-a/out/." release/; done
+          rustc_version=$(grep '^channel' rust-toolchain.toml | cut -d'"' -f2)
+          python3 - "$rustc_version" <<'PY'
+          import hashlib, json, os, subprocess, sys
+          files = []
+          for root, _, names in os.walk("release"):
+              for n in names:
+                  p = os.path.join(root, n)
+                  with open(p, "rb") as f:
+                      data = f.read()
+                  files.append({"path": os.path.relpath(p, "release"), "size": len(data),
+                                "sha256": hashlib.sha256(data).hexdigest()})
+          files.sort(key=lambda x: x["path"])
+          lock = open("Cargo.lock").read()
+          def locked(name):
+              i = lock.index(f'name = "{name}"\nversion = "')
+              return lock[i:].split('version = "')[1].split('"')[0]
+          manifest = {
+              "source": {"repository": os.environ["GITHUB_SERVER_URL"] + "/" + os.environ["GITHUB_REPOSITORY"],
+                         "commit": os.environ["GITHUB_SHA"],
+                         "upstream": "https://github.com/Meneleus/vodozemac-bindings"},
+              "toolchain": {"rustc": sys.argv[1], "wasm-bindgen-cli": os.environ["WASM_BINDGEN_CLI_VERSION"],
+                            "wasm-pack": os.environ["WASM_PACK_VERSION"], "wasm-opt": "disabled",
+                            "cargo-ndk": os.environ["CARGO_NDK_VERSION"], "android-ndk": os.environ["ANDROID_NDK_VERSION"],
+                            "android-min-api": os.environ["ANDROID_MIN_API"], "xcode": os.environ["XCODE_VERSION"]},
+              "crates": {n: locked(n) for n in ["vodozemac", "uniffi", "wasm-bindgen"]},
+              "reproducible": "two independent runner builds per target, byte-identical",
+              "files": files,
+          }
+          json.dump(manifest, open("release/manifest.json", "w"), indent=2, sort_keys=True)
+          PY
+          cat release/manifest.json
+      - name: Derleme kaniti (SLSA provenance)
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: "release/**/*"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rtw-vodozemac-${{ github.sha }}
+          path: release
+          retention-days: 90

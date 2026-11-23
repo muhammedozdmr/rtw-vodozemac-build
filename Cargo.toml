@@ -22,6 +22,14 @@ getrandom = { version = "0.2", features = ["js"] }
 [profile.release]
 opt-level = "s"
 lto = true
+# RTW: tek kod uretim birimi — paralel kod uretiminin sirasi ciktiyi degistirmesin
+# (yeniden uretilebilir derleme).
+codegen-units = 1
+
+# RTW: wasm-opt (binaryen) KAPALI. wasm-pack onu ayrica indirir ve surumu Cargo.lock'ta
+# sabitlenmez; ciktiyi degistirdigi icin iki derlemenin ayni ikiliyi uretmesini bozar.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
 
 # Workspace — the root crate above remains the wasm-bindgen target for
 # pkg-web / pkg-node. The new member is the UniFFI-based crate that powers

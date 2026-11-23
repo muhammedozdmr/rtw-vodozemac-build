@@ -1,0 +1,15 @@
+# RTW: derleyici surumu SABIT (yeniden uretilebilir derleme). Kayan `stable` kullanilmaz:
+# farkli rustc ayni kaynaktan farkli ikili uretir ve "bu ikili bu koddan cikti" kaniti olculemez.
+# Surum degisikligi ayri bir commit'le yapilir ve iki istemcinin manifest'i birlikte yenilenir.
+[toolchain]
+channel = "1.100.0"
+profile = "minimal"
+targets = [
+  "wasm32-unknown-unknown",
+  "aarch64-linux-android",
+  "armv7-linux-androideabi",
+  "x86_64-linux-android",
+  "aarch64-apple-ios",
+  "aarch64-apple-ios-sim",
+  "x86_64-apple-ios",
+]

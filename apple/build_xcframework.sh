@@ -32,14 +32,15 @@ mkdir -p "${GENERATED_DIR}/simulator" "${GENERATED_DIR}/headers"
 # transitive openssl bits, none here, but kept for forward-compat) read it.
 export IOS_SDK_PATH="$(xcrun --show-sdk-path --sdk iphoneos)"
 
+# RTW: `--locked` — bagimliliklar yalniz Cargo.lock'tan; kilit disi cozum derlemeyi durdurur.
 echo "→ build aarch64-apple-ios       (device)"
-cargo build -p "${TARGET_CRATE}" --release --target aarch64-apple-ios
+cargo build -p "${TARGET_CRATE}" --release --locked --target aarch64-apple-ios
 
 echo "→ build aarch64-apple-ios-sim   (sim arm64)"
-cargo build -p "${TARGET_CRATE}" --release --target aarch64-apple-ios-sim
+cargo build -p "${TARGET_CRATE}" --release --locked --target aarch64-apple-ios-sim
 
 echo "→ build x86_64-apple-ios        (sim x86_64)"
-cargo build -p "${TARGET_CRATE}" --release --target x86_64-apple-ios
+cargo build -p "${TARGET_CRATE}" --release --locked --target x86_64-apple-ios
 
 # ── 2. Lipo the two sim slices into one fat sim staticlib ─────────────────
 echo "→ lipo sim slices"
@@ -52,7 +53,7 @@ lipo -create \
 # UniFFI introspects the static lib's symbols to derive the interface, so
 # we can point it at any built slice (use the device one).
 echo "→ generate Swift bindings"
-cargo run -p "${TARGET_CRATE}" --bin uniffi-bindgen --release -- generate \
+cargo run -p "${TARGET_CRATE}" --bin uniffi-bindgen --release --locked -- generate \
   --library "${TARGET_DIR}/aarch64-apple-ios/release/${LIB_NAME}" \
   --language swift \
   --out-dir "${GENERATED_DIR}"
