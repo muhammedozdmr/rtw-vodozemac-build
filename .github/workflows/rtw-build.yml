@@ -66,6 +66,24 @@ jobs:
       - name: Duman testi + test vektorleri
         if: matrix.pass == 'a'
         run: npm test
+      # Pickle uyumlulugu: bu surumle yeni bir vektor uretilir ve hemen dogrulanir (betigin
+      # kendisini sinar); depodaki eski surum vektorleri (test-vectors/pickle-compat-*.json)
+      # bu derlemede acilip yazisma surdurulur. Surum yukseltmesinde kullanicilarin mevcut
+      # kimlik ve oturumlarinin bozulmadiginin kaniti budur.
+      - name: Pickle uyumlulugu
+        if: matrix.pass == 'a'
+        run: |
+          ver=$(awk '/^name = "vodozemac"$/{getline; print $3}' Cargo.lock | tr -d '"')
+          mkdir -p out-pickle
+          VODOZEMAC_VERSION="$ver" node scripts/generate-pickle-compat.mjs "out-pickle/pickle-compat-v$ver.json"
+          node scripts/verify-pickle-compat.mjs "out-pickle/pickle-compat-v$ver.json"
+          if ls test-vectors/pickle-compat-*.json > /dev/null 2>&1; then node scripts/verify-pickle-compat.mjs; fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: matrix.pass == 'a'
+        with:
+          name: pickle-compat
+          path: out-pickle
+          retention-days: 90
       - name: CSP — uretilen JS'te eval / new Function yok
         run: |
           if grep -nE '\beval\(|new Function\(' pkg-web/*.js; then echo "::error::pkg-web JS eval/new Function iceriyor"; exit 1; fi
@@ -226,8 +244,11 @@ jobs:
           json.dump(manifest, open("release/manifest.json", "w"), indent=2, sort_keys=True)
           PY
           cat release/manifest.json
+      # Kanit YALNIZ guvenilen ref'ler icin: `rtw` dali ve `rtw-v*` etiketleri. Baska daldan
+      # (elle tetikleme dahil) derlenen kod kanit almaz; istemci dogrulamada
+      # `--source-ref refs/heads/rtw` (ya da etiket) ve `--signer-workflow` ile bunu sinar.
       - name: Derleme kaniti (SLSA provenance)
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/rtw' || startsWith(github.ref, 'refs/tags/rtw-v'))
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: "release/**/*"

@@ -45,8 +45,13 @@ olur ve hiçbir şey yayımlanmaz. Eşitse:
 
 ```bash
 gh run download <run-id> -R muhammedozdmr/rtw-vodozemac-build -n rtw-vodozemac-<commit>
-gh attestation verify <dosya> -R muhammedozdmr/rtw-vodozemac-build
+gh attestation verify <dosya> -R muhammedozdmr/rtw-vodozemac-build \
+  --source-ref refs/heads/rtw \
+  --signer-workflow muhammedozdmr/rtw-vodozemac-build/.github/workflows/rtw-build.yml
 ```
+
+Kanıt yalnız `rtw` dalı ve `rtw-v*` etiketleri için üretilir. `--source-ref` ve
+`--signer-workflow` olmadan doğrulama, başka bir daldan derlenmiş ikiliyi de kabul ederdi.
 
 İstemciler (RateTheWork mobil ve webapp) `manifest.json`'daki özetleri kendi kilit
 testlerinde sabitler; ikili değişirse test kırılır.

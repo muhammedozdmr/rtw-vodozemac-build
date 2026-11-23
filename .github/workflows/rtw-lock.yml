@@ -1,0 +1,59 @@
+# RTW: bir crate'i tam surume yukseltip YENI Cargo.lock uretir (elle tetiklenir).
+# Depoya YAZMAZ: yeni Cargo.lock ve bagimlilik agaci farki artefakt olarak yuklenir; insan
+# (ya da orkestrator) farki okur ve kendisi commit eder. Sabit arac zinciri rust-toolchain.toml.
+
+name: rtw-lock
+
+on:
+  workflow_dispatch:
+    inputs:
+      crate:
+        description: "Yukseltilecek crate (ornek: vodozemac)"
+        required: true
+      version:
+        description: "Tam surum (ornek: 0.11.2)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  lock:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Girdi denetimi
+        env:
+          CRATE: ${{ inputs.crate }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$CRATE" =~ ^[a-z0-9_-]{1,64}$ ]] || { echo "::error::gecersiz crate adi"; exit 1; }
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::gecersiz surum"; exit 1; }
+      - name: Rust arac zinciri (rust-toolchain.toml)
+        run: rustup toolchain install && rustc --version --verbose
+      # Cargo.toml'daki surum gereksinimi (ornek `=0.11.2`) dalda ONCEDEN degistirilmis olmali;
+      # bu adim yalniz kilidi o gereksinime gore cozer.
+      - name: cargo update + kilit farki
+        env:
+          CRATE: ${{ inputs.crate }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          mkdir -p out
+          cargo update -p "$CRATE" --precise "$VERSION"
+          git diff --stat -- Cargo.lock
+          git diff -- Cargo.lock > out/Cargo.lock.diff
+          cp Cargo.lock out/Cargo.lock
+          cargo tree --locked -e normal --prefix none -p vodozemac-ffi | LC_ALL=C sort -u > out/tree-ffi.txt
+          cargo tree --locked -e normal --target wasm32-unknown-unknown --prefix none -p kinsh-vodozemac-wasm | LC_ALL=C sort -u > out/tree-wasm.txt
+          grep -E '^(name|version) = ' Cargo.lock | paste - - | grep -E 'getrandom|rand |dalek|vodozemac"' || true
+      - name: Derleme denetimi (yeni kilitle, uc hedef ailesi)
+        run: |
+          cargo check --locked -p vodozemac-ffi
+          cargo check --locked -p kinsh-vodozemac-wasm --target wasm32-unknown-unknown
+          cargo test --locked -p vodozemac-ffi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: lock-${{ inputs.crate }}-${{ inputs.version }}
+          path: out
+          retention-days: 30
