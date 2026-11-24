@@ -642,6 +642,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Short
     external fun uniffi_vodozemac_ffi_checksum_method_account_fallback_key(
     ): Short
+    external fun uniffi_vodozemac_ffi_checksum_method_account_forget_fallback_key(
+    ): Short
     external fun uniffi_vodozemac_ffi_checksum_method_account_generate_fallback_key(
     ): Short
     external fun uniffi_vodozemac_ffi_checksum_method_account_generate_one_time_keys(
@@ -742,6 +744,8 @@ external fun uniffi_vodozemac_ffi_fn_method_account_create_outbound_session(`ptr
 ): Long
 external fun uniffi_vodozemac_ffi_fn_method_account_fallback_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+external fun uniffi_vodozemac_ffi_fn_method_account_forget_fallback_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
 external fun uniffi_vodozemac_ffi_fn_method_account_generate_fallback_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 external fun uniffi_vodozemac_ffi_fn_method_account_generate_one_time_keys(`ptr`: Long,`count`: Int,uniffi_out_err: UniffiRustCallStatus, 
@@ -948,6 +952,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_vodozemac_ffi_checksum_method_account_fallback_key() != 50651.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_vodozemac_ffi_checksum_method_account_forget_fallback_key() != 35588.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_vodozemac_ffi_checksum_method_account_generate_fallback_key() != 29131.toShort()) {
@@ -1455,6 +1462,14 @@ public interface AccountInterface {
      */
     fun `fallbackKey`(): kotlin.String
     
+    /**
+     * RTW: drops the previous fallback key — the one `generate_fallback_key`
+     * replaced. Returns `true` if one was dropped. Prekey messages encrypted
+     * to it can no longer be decrypted afterwards, so call this only once
+     * such messages can no longer arrive (or are already decrypted).
+     */
+    fun `forgetFallbackKey`(): kotlin.Boolean
+    
     fun `generateFallbackKey`()
     
     fun `generateOneTimeKeys`(`count`: kotlin.UInt)
@@ -1643,6 +1658,26 @@ open class Account: Disposable, AutoCloseable, AccountInterface
     callWithHandle {
     uniffiRustCallWithError(VodozemacException) { _status ->
     UniffiLib.uniffi_vodozemac_ffi_fn_method_account_fallback_key(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * RTW: drops the previous fallback key — the one `generate_fallback_key`
+     * replaced. Returns `true` if one was dropped. Prekey messages encrypted
+     * to it can no longer be decrypted afterwards, so call this only once
+     * such messages can no longer arrive (or are already decrypted).
+     */
+    @Throws(VodozemacException::class)override fun `forgetFallbackKey`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithHandle {
+    uniffiRustCallWithError(VodozemacException) { _status ->
+    UniffiLib.uniffi_vodozemac_ffi_fn_method_account_forget_fallback_key(
         it,
         _status)
 }
