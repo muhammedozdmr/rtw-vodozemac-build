@@ -46,6 +46,7 @@ export interface Spec extends TurboModule {
   accountMaxNumberOfOneTimeKeys(handle: number): number;
   accountGenerateFallbackKey(handle: number): boolean;
   accountFallbackKey(handle: number): string;
+  accountForgetFallbackKey(handle: number): boolean;
   accountSign(handle: number, message: string): string;
   accountPickle(handle: number): string;
   accountCreateOutboundSession(

@@ -187,6 +187,15 @@ impl Account {
             .map_err(|e| VodozemacError::Internal { reason: e.to_string() })
     }
 
+    /// RTW: drops the previous fallback key — the one `generate_fallback_key`
+    /// replaced. Returns `true` if one was dropped. Prekey messages encrypted
+    /// to it can no longer be decrypted afterwards, so call this only once
+    /// such messages can no longer arrive (or are already decrypted).
+    pub fn forget_fallback_key(&self) -> Result<bool> {
+        let mut inner = self.lock_inner()?;
+        Ok(inner.forget_fallback_key())
+    }
+
     /// Sign the given message with this account's Ed25519 identity key,
     /// returning a base64 signature.
     pub fn sign(&self, message: String) -> Result<String> {
@@ -622,6 +631,49 @@ mod tests {
 
         let decoded = alice_session.decrypt(reply_type, reply_body).unwrap();
         assert_eq!(decoded, "hi alice");
+    }
+
+    /// RTW: the replaced fallback key keeps decrypting until it is forgotten;
+    /// after `forget_fallback_key` a prekey message to it fails, while the
+    /// current fallback key still works.
+    #[test]
+    fn forget_fallback_key_drops_only_the_previous_key() {
+        fn fallback_of(acc: &Account) -> String {
+            let v: serde_json::Value =
+                serde_json::from_str(&acc.fallback_key().unwrap()).unwrap();
+            v["curve25519"].as_object().unwrap().values().next().unwrap()
+                .as_str().unwrap().to_string()
+        }
+        fn prekey_to(bob_id: &str, key: &str) -> String {
+            let sender = Account::new();
+            let s = sender.create_outbound_session(bob_id.to_string(), key.to_string()).unwrap();
+            let enc: serde_json::Value =
+                serde_json::from_str(&s.encrypt("x".into()).unwrap()).unwrap();
+            enc["body"].as_str().unwrap().to_string()
+        }
+        let bob = Account::new();
+        let bob_ids: serde_json::Value =
+            serde_json::from_str(&bob.identity_keys().unwrap()).unwrap();
+        let bob_id = bob_ids["curve25519"].as_str().unwrap().to_string();
+
+        assert!(!bob.forget_fallback_key().unwrap(), "nothing to forget yet");
+        bob.generate_fallback_key().unwrap();
+        let old_key = fallback_of(&bob);
+        bob.mark_keys_as_published().unwrap();
+        bob.generate_fallback_key().unwrap();
+        let new_key = fallback_of(&bob);
+        bob.mark_keys_as_published().unwrap();
+
+        // Previous key still live before forgetting.
+        assert!(bob.create_inbound_session(prekey_to(&bob_id, &old_key)).is_ok());
+        assert!(bob.forget_fallback_key().unwrap());
+        assert!(!bob.forget_fallback_key().unwrap(), "second forget is a no-op");
+        assert!(bob.create_inbound_session(prekey_to(&bob_id, &old_key)).is_err());
+        assert!(bob.create_inbound_session(prekey_to(&bob_id, &new_key)).is_ok());
+
+        // Forgetting survives a pickle round-trip.
+        let restored = Account::from_pickle(bob.pickle().unwrap()).unwrap();
+        assert!(restored.create_inbound_session(prekey_to(&bob_id, &old_key)).is_err());
     }
 
     /// Pickle round-trip: account survives serialize → deserialize.

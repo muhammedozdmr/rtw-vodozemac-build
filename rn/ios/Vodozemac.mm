@@ -97,6 +97,13 @@ RCT_EXPORT_MODULE()
     return r;
 }
 
+- (NSNumber *)accountForgetFallbackKey:(double)handle {
+    NSError *err = nil;
+    NSNumber *r = [VodozemacImpl accountForgetFallbackKey:@(handle) error:&err];
+    if (err) { @throw [NSException exceptionWithName:@"Vodozemac" reason:err.localizedDescription userInfo:nil]; }
+    return r;
+}
+
 - (NSString *)accountSign:(double)handle message:(NSString *)message {
     NSError *err = nil;
     NSString *r = [VodozemacImpl accountSign:@(handle) message:message error:&err];

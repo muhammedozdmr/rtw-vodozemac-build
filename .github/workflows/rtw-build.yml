@@ -144,6 +144,15 @@ jobs:
           diff -u rn/android/src/main/java/com/dtelecom/vodozemac/vodozemac.kt \
             out/android/kotlin/com/dtelecom/vodozemac/vodozemac.kt \
             || { echo "::error::Uretilen Kotlin depodaki kopyadan farkli"; exit 1; }
+      # Baglama yuzeyi degistiginde (yeni metot) uretilen dosya buradan alinip depoya islenir;
+      # bu makinede Rust yok. Esitlik adimi kirmizi kalir, yani artefakt kanit almaz.
+      - name: Uretilen Kotlin (yalniz fark varsa)
+        if: failure() && matrix.pass == 'a'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bindings-kotlin
+          path: out/android/kotlin
+          retention-days: 7
       - name: Ozetler
         run: |
           (cd out && find . -type f | LC_ALL=C sort | xargs sha256sum) > sums-android-${{ matrix.pass }}.txt
@@ -181,6 +190,13 @@ jobs:
         run: |
           diff -u rn/ios/VodozemacFFI.swift apple/Sources/VodozemacFFI/VodozemacFFI.swift \
             || { echo "::error::Uretilen Swift depodaki kopyadan farkli"; exit 1; }
+      - name: Uretilen Swift (yalniz fark varsa)
+        if: failure() && matrix.pass == 'a'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bindings-swift
+          path: apple/Sources/VodozemacFFI/VodozemacFFI.swift
+          retention-days: 7
       - name: Ozetler
         run: |
           mkdir -p out/ios

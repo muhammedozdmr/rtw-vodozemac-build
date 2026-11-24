@@ -122,6 +122,9 @@ class VodozemacModule(reactContext: ReactApplicationContext) : NativeVodozemacSp
     override fun accountFallbackKey(handle: Double): String =
         getAccount(handle.toLong()).fallbackKey()
 
+    override fun accountForgetFallbackKey(handle: Double): Boolean =
+        getAccount(handle.toLong()).forgetFallbackKey()
+
     override fun accountSign(handle: Double, message: String): String =
         getAccount(handle.toLong()).sign(message)
 

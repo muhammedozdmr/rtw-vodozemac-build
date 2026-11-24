@@ -116,6 +116,15 @@ export class Account {
     return Native.accountFallbackKey(this.h());
   }
 
+  /**
+   * RTW: drops the previous fallback key (the one {@link generateFallbackKey}
+   * replaced). Returns `true` if one was dropped. Prekey messages encrypted to
+   * it can no longer be decrypted afterwards.
+   */
+  forgetFallbackKey(): boolean {
+    return Native.accountForgetFallbackKey(this.h());
+  }
+
   /** Sign the given message with this account's Ed25519 identity key. */
   sign(message: string): string {
     return Native.accountSign(this.h(), message);

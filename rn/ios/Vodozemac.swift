@@ -163,6 +163,10 @@ public class VodozemacImpl: NSObject {
         return try getAccount(handle.int64Value).fallbackKey()
     }
 
+    @objc public static func accountForgetFallbackKey(_ handle: NSNumber) throws -> NSNumber {
+        return NSNumber(value: try getAccount(handle.int64Value).forgetFallbackKey())
+    }
+
     @objc public static func accountSign(_ handle: NSNumber, message: String) throws -> String {
         return try getAccount(handle.int64Value).sign(message: message)
     }

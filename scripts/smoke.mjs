@@ -41,6 +41,31 @@ const v = require('../pkg-node/kinsh_vodozemac_wasm.js');
   console.log('olm smoke: all checks passed');
 }
 
+// ── RTW: forgetFallbackKey ──────────────────────────────────────────────────
+
+{
+  const bob = new v.Account();
+  const bobId = JSON.parse(bob.identityKeys()).curve25519;
+  const fallbackOf = (a) => Object.values(JSON.parse(a.fallbackKey()).curve25519)[0];
+  const prekeyTo = (key) => JSON.parse(new v.Account().createOutboundSession(bobId, key).encrypt('x')).body;
+
+  assert.equal(bob.forgetFallbackKey(), false);
+  bob.generateFallbackKey();
+  const oldKey = fallbackOf(bob);
+  bob.markKeysAsPublished();
+  bob.generateFallbackKey();
+  const newKey = fallbackOf(bob);
+  bob.markKeysAsPublished();
+
+  assert.equal(bob.createInboundSession(prekeyTo(oldKey)).plaintext, 'x');
+  assert.equal(bob.forgetFallbackKey(), true);
+  assert.equal(bob.forgetFallbackKey(), false);
+  assert.throws(() => bob.createInboundSession(prekeyTo(oldKey)));
+  assert.equal(bob.createInboundSession(prekeyTo(newKey)).plaintext, 'x');
+  assert.throws(() => v.Account.fromPickle(bob.pickle()).createInboundSession(prekeyTo(oldKey)));
+  console.log('forgetFallbackKey smoke: all checks passed');
+}
+
 // ── Megolm (group) ──────────────────────────────────────────────────────────
 
 {

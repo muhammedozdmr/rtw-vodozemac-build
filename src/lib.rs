@@ -136,6 +136,15 @@ impl Account {
         serde_json::to_string(&wrapper).map_err(js_err)
     }
 
+    /// RTW: drops the previous fallback key — the one `generateFallbackKey`
+    /// replaced. Returns `true` if one was dropped. Prekey messages encrypted
+    /// to it can no longer be decrypted afterwards, so call this only once
+    /// such messages can no longer arrive (or are already decrypted).
+    #[wasm_bindgen(js_name = forgetFallbackKey)]
+    pub fn forget_fallback_key(&mut self) -> bool {
+        self.inner.forget_fallback_key()
+    }
+
     /// Sign the given message with this account's Ed25519 identity key,
     /// returning a base64-encoded signature.
     pub fn sign(&self, message: &str) -> String {
