@@ -540,6 +540,14 @@ public protocol AccountProtocol: AnyObject, Sendable {
      */
     func fallbackKey() throws  -> String
     
+    /**
+     * RTW: drops the previous fallback key — the one `generate_fallback_key`
+     * replaced. Returns `true` if one was dropped. Prekey messages encrypted
+     * to it can no longer be decrypted afterwards, so call this only once
+     * such messages can no longer arrive (or are already decrypted).
+     */
+    func forgetFallbackKey() throws  -> Bool
+    
     func generateFallbackKey() throws 
     
     func generateOneTimeKeys(count: UInt32) throws 
@@ -681,6 +689,20 @@ open func createOutboundSession(theirIdentityKey: String, theirOneTimeKey: Strin
 open func fallbackKey()throws  -> String  {
     return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVodozemacError_lift) {
     uniffi_vodozemac_ffi_fn_method_account_fallback_key(
+            self.uniffiCloneHandle(),$0
+    )
+})
+}
+    
+    /**
+     * RTW: drops the previous fallback key — the one `generate_fallback_key`
+     * replaced. Returns `true` if one was dropped. Prekey messages encrypted
+     * to it can no longer be decrypted afterwards, so call this only once
+     * such messages can no longer arrive (or are already decrypted).
+     */
+open func forgetFallbackKey()throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVodozemacError_lift) {
+    uniffi_vodozemac_ffi_fn_method_account_forget_fallback_key(
             self.uniffiCloneHandle(),$0
     )
 })
@@ -1785,6 +1807,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_vodozemac_ffi_checksum_method_account_fallback_key() != 50651) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_vodozemac_ffi_checksum_method_account_forget_fallback_key() != 35588) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_vodozemac_ffi_checksum_method_account_generate_fallback_key() != 29131) {
